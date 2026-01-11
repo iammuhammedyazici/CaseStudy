@@ -1,0 +1,60 @@
+# =========================
+# .NET / C#
+# =========================
+**/bin/
+**/obj/
+**/TestResults/
+*.user
+*.suo
+*.cache
+*.log
+
+# =========================
+# Visual Studio / Rider
+# =========================
+.vs/
+.idea/
+*.rsuser
+*.userprefs
+
+# =========================
+# macOS
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+secrets.json
+appsettings.*.json
+!appsettings.json
+
+# =========================
+# Docker
+# =========================
+**/docker-data/
+**/volumes/
+**/node_modules/
+
+# =========================
+# Build & Coverage
+# =========================
+coverage/
+*.coverage
+*.coveragexml
+
+# =========================
+# Logs
+# =========================
+logs/
+*.log
+
+# =========================
+# OS / Misc
+# =========================
+Thumbs.db
+ehthumbs.db

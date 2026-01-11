@@ -1,0 +1,253 @@
+version: "3.9"
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_order:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: orderdb
+      POSTGRES_USER: orderuser
+      POSTGRES_PASSWORD: orderpass
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderuser -d orderdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_stock:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: stockdb
+      POSTGRES_USER: stockuser
+      POSTGRES_PASSWORD: stockpass
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stockuser -d stockdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_notification:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: notificationdb
+      POSTGRES_USER: notifuser
+      POSTGRES_PASSWORD: notifpass
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notifuser -d notificationdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres_product:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: productdb
+      POSTGRES_USER: productuser
+      POSTGRES_PASSWORD: productpass
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U productuser -d productdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - product_data:/var/lib/postgresql/data
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: src/ApiGateway/ECommerce.ApiGateway/Dockerfile
+    depends_on:
+      order-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5080:8080"
+
+  order-service:
+    build:
+      context: ..
+      dockerfile: src/Services/Order/ECommerce.Order.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ORDER_DB_CONNECTION: Host=postgres_order;Database=orderdb;Username=orderuser;Password=orderpass
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: guest
+      RabbitMQ__Password: guest
+      RabbitMQ__ExchangeName: ecommerce.events
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: order-service
+    ports:
+      - "5001:8080"
+    depends_on:
+      postgres_order:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  stock-worker:
+    build:
+      context: ..
+      dockerfile: src/Services/Stock/ECommerce.Stock.Worker/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__StockDb: Host=postgres_stock;Database=stockdb;Username=stockuser;Password=stockpass
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: guest
+      RabbitMQ__Password: guest
+      RabbitMQ__ExchangeName: ecommerce.events
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: stock-worker
+    depends_on:
+      postgres_stock:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  stock-service:
+    build:
+      context: ..
+      dockerfile: src/Services/Stock/ECommerce.Stock.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__StockDb: Host=postgres_stock;Database=stockdb;Username=stockuser;Password=stockpass
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: guest
+      RabbitMQ__Password: guest
+      RabbitMQ__ExchangeName: ecommerce.events
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: stock-service
+    ports:
+      - "5002:8080"
+    depends_on:
+      postgres_stock:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification-worker:
+    build:
+      context: ..
+      dockerfile: src/Services/Notification/ECommerce.Notification.Worker/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      NOTIFICATION_DB_CONNECTION: Host=postgres_notification;Database=notificationdb;Username=notifuser;Password=notifpass
+      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Port: 5672
+      RabbitMQ__UserName: guest
+      RabbitMQ__Password: guest
+      RabbitMQ__ExchangeName: ecommerce.events
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: notification-worker
+    depends_on:
+      postgres_notification:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  product-service:
+    build:
+      context: ..
+      dockerfile: src/Services/Product/ECommerce.Product.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      PRODUCT_DB_CONNECTION: Host=postgres_product;Database=productdb;Username=productuser;Password=productpass
+      Elasticsearch__Url: http://elasticsearch:9200
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_SERVICE_NAME: product-service
+    ports:
+      - "5081:8080"
+    depends_on:
+      postgres_product:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
+
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:8.1
+    environment:
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
+    ports:
+      - "18888:18888" # Dashboard UI
+      - "4317:18889"   # OTLP gRPC
+      - "4318:18890"   # OTLP HTTP
+
+volumes:
+  product_data:
+  elastic_data:
+  redis_data:
