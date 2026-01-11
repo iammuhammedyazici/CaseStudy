@@ -262,9 +262,6 @@ dotnet ef database update
 ## 📚 Documentation
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)**: Detailed architecture diagrams and decisions
-- **[SUNUM_REHBERI.md](SUNUM_REHBERI.md)**: Presentation guide (Turkish)
-- **[MULAKAT_SORU_BANKASI.md](MULAKAT_SORU_BANKASI.md)**: Interview question bank (Turkish)
-
 ---
 
 ## 🔧 Technology Stack
@@ -279,14 +276,3 @@ dotnet ef database update
 | **Patterns** | CQRS, MediatR, Saga, Outbox/Inbox |
 | **Containerization** | Docker, Docker Compose |
 
----
-
-## 📄 License
-
-This is a case study project for educational purposes.
-
----
-
-## 🤝 Contributing
-
-This is a personal case study project. Feel free to fork and adapt for your own learning!
