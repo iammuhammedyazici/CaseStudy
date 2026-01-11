@@ -12,5 +12,7 @@ public record CreateOrderCommand(
     string? ExternalSystemCode = null,
     Guid? ShippingAddressId = null,
     Guid? BillingAddressId = null,
-    string? CustomerNote = null
+    string? CustomerNote = null,
+    string? IdempotencyKey = null,
+    string? GuestEmail = null
 ) : IRequest<Result<CreateOrderResult>>;

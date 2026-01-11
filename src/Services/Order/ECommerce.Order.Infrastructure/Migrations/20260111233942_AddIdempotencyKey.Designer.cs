@@ -3,6 +3,7 @@ using System;
 using ECommerce.Order.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Order.Infrastructure.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    partial class OrderDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260111233942_AddIdempotencyKey")]
+    partial class AddIdempotencyKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -56,10 +59,6 @@ namespace ECommerce.Order.Infrastructure.Migrations
                     b.Property<string>("ExternalSystemCode")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<string>("GuestEmail")
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("IdempotencyKey")
                         .HasMaxLength(100)
@@ -104,8 +103,6 @@ namespace ECommerce.Order.Infrastructure.Migrations
                     b.HasIndex("ExternalOrderId");
 
                     b.HasIndex("ExternalSystemCode");
-
-                    b.HasIndex("GuestEmail");
 
                     b.HasIndex("IdempotencyKey")
                         .IsUnique();

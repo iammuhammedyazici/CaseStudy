@@ -1,5 +1,6 @@
 using ECommerce.Stock.Application.Abstractions.Persistence;
 using ECommerce.Contracts.Common;
+using Mapster;
 using MediatR;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -21,7 +22,7 @@ public class GetStockHandler : IRequestHandler<GetStockQuery, Result<GetStockRes
         var cacheKey = $"stock:{request.VariantId}";
         var cachedStock = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
-        if (!string.IsNullOrEmpty(cachedStock))
+        if (!string.IsNullOrWhiteSpace(cachedStock))
         {
             var cachedItem = System.Text.Json.JsonSerializer.Deserialize<GetStockResult>(cachedStock);
             if (cachedItem != null)
@@ -37,13 +38,7 @@ public class GetStockHandler : IRequestHandler<GetStockQuery, Result<GetStockRes
             return Result<GetStockResult>.Failure("Product not found");
         }
 
-        var result = new GetStockResult(
-            stockItem.VariantId,
-            stockItem.ProductId,
-            stockItem.AvailableQuantity,
-            stockItem.ReservedQuantity,
-            stockItem.ActualAvailable
-        );
+        var result = stockItem.Adapt<GetStockResult>();
 
         var cacheOptions = new Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions
         {

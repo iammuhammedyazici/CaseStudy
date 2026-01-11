@@ -33,18 +33,6 @@ var settings = new ConnectionSettings(new Uri(elasticsearchUrl))
     .DefaultIndex("products");
 
 builder.Services.AddSingleton<IElasticClient>(new ElasticClient(settings));
-builder.Services.AddSingleton<IElasticsearchService, ElasticsearchService>();
-
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-
-builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(ECommerce.Product.Application.Products.Queries.GetProducts.GetProductsQuery).Assembly));
-builder.Services.AddObservabilityBehaviors();
-builder.Services.AddHealthChecks()
-    .AddNpgSql(connectionString!, name: "database");
-
-builder.Services.AddCustomOpenTelemetry(builder.Configuration);
-builder.Logging.AddCustomOpenTelemetry(builder.Configuration);
 
 var app = builder.Build();
 

@@ -1,7 +1,7 @@
 namespace ECommerce.Product.Application.Common.Dtos;
 
 public record ProductVariantDto(
-    int Id,
+    Guid Id,
     string SKU,
     string Name,
     decimal Price,

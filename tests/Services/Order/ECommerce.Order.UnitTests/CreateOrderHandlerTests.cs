@@ -21,6 +21,7 @@ public class CreateOrderHandlerTests
     private readonly CreateOrderHandler _handler;
 
     private readonly Mock<IPublishEndpoint> _publishEndpointMock;
+    private readonly Mock<IRequestClient<CheckStockRequest>> _requestClientMock;
 
     public CreateOrderHandlerTests()
     {
@@ -28,7 +29,8 @@ public class CreateOrderHandlerTests
         _validatorMock = new Mock<IValidator<CreateOrderCommand>>(MockBehavior.Strict);
         _publishEndpointMock = new Mock<IPublishEndpoint>();
         _currentUserServiceMock = new Mock<ICurrentUserService>();
-        _handler = new CreateOrderHandler(_repositoryMock.Object, _validatorMock.Object, _publishEndpointMock.Object, _currentUserServiceMock.Object);
+        _requestClientMock = new Mock<IRequestClient<CheckStockRequest>>();
+        _handler = new CreateOrderHandler(_repositoryMock.Object, _validatorMock.Object, _publishEndpointMock.Object, _currentUserServiceMock.Object, _requestClientMock.Object);
     }
 
     [Fact]
@@ -57,6 +59,13 @@ public class CreateOrderHandlerTests
         _validatorMock
             .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<CreateOrderCommand>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidationResult());
+
+        var stockResponseMock = new Mock<Response<CheckStockResponse>>();
+        stockResponseMock.Setup(r => r.Message).Returns(new CheckStockResponse(true, new List<UnavailableStockItem>()));
+
+        _requestClientMock
+            .Setup(c => c.GetResponse<CheckStockResponse>(It.IsAny<CheckStockRequest>(), It.IsAny<CancellationToken>(), It.IsAny<RequestTimeout>()))
+            .ReturnsAsync(stockResponseMock.Object);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 

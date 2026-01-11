@@ -61,6 +61,18 @@ public class ElasticsearchService : IElasticsearchService
 
     public async Task<List<Domain.Entities.Product>> SearchProductsAsync(string query, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return new List<Domain.Entities.Product>();
+        }
+
+        query = SanitizeSearchQuery(query);
+
+        if (query.Length > 100)
+        {
+            query = query.Substring(0, 100);
+        }
+
         var searchResponse = await _client.SearchAsync<Domain.Entities.Product>(s => s
             .Index(IndexName)
             .Query(q => q
@@ -79,5 +91,22 @@ public class ElasticsearchService : IElasticsearchService
         );
 
         return searchResponse.Documents.ToList();
+    }
+
+    private static string SanitizeSearchQuery(string query)
+    {
+        var specialChars = new[] { "\\", "+", "-", "=", "&&", "||", ">", "<", "!", "(", ")", "{", "}", "[", "]", "^", "\"", "~", "*", "?", ":", "/" };
+
+        foreach (var ch in specialChars)
+        {
+            query = query.Replace(ch, " ");
+        }
+
+        while (query.Contains("  "))
+        {
+            query = query.Replace("  ", " ");
+        }
+
+        return query.Trim();
     }
 }

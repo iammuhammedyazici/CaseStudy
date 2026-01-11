@@ -33,11 +33,15 @@ public class OrderDbContext : DbContext
             entity.Property(o => o.InternalNote).HasMaxLength(1000);
             entity.Property(o => o.UpdatedBy).HasMaxLength(100);
             entity.Property(o => o.CancelledBy).HasMaxLength(100);
+            entity.Property(o => o.IdempotencyKey).HasMaxLength(100);
+            entity.Property(o => o.GuestEmail).HasMaxLength(255);
 
             entity.HasIndex(o => o.Source);
             entity.HasIndex(o => o.ExternalOrderId).IsUnique(false);
             entity.HasIndex(o => o.ExternalSystemCode);
             entity.HasIndex(o => o.ShippingAddressId);
+            entity.HasIndex(o => o.IdempotencyKey).IsUnique();
+            entity.HasIndex(o => o.GuestEmail);
             entity.HasIndex(o => o.Status);
             entity.HasIndex(o => o.CreatedAt);
         });

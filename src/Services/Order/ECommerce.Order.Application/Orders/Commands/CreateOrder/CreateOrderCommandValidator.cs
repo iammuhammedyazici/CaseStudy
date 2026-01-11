@@ -47,7 +47,7 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
 
         RuleFor(x => x.CustomerNote)
             .MaximumLength(1000)
-            .When(x => !string.IsNullOrEmpty(x.CustomerNote))
+            .When(x => !string.IsNullOrWhiteSpace(x.CustomerNote))
             .WithMessage("Customer note cannot exceed 1000 characters");
     }
 }

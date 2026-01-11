@@ -19,4 +19,5 @@ public interface IOrderRepository
         CancellationToken cancellationToken);
     Task UpdateOrderAsync(OrderEntity order, CancellationToken cancellationToken);
     Task PublishEventAsync<T>(MessageEnvelope<T> envelope, CancellationToken cancellationToken);
+    Task<OrderEntity?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken);
 }

@@ -3,6 +3,7 @@ using ECommerce.Order.Application.Abstractions;
 using ECommerce.Order.Application.Abstractions.Persistence;
 using ECommerce.Order.Application.Common;
 using ECommerce.Order.Application.Orders.Dtos;
+using Mapster;
 using ECommerce.Order.Application.Orders.Queries.GetOrder;
 using MediatR;
 
@@ -26,7 +27,7 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<Page
 
         var effectiveUserId = isAdmin ? request.UserId : userId;
 
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
             return Result<PagedResponse<OrderResponse>>.Unauthorized("User is not authenticated");
         }
@@ -40,41 +41,15 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<Page
             request.PageSize,
             cancellationToken);
 
-        var orderDtos = orders.Select(order => new GetOrderDto(
-            order.Id,
-            order.UserId,
-            order.TotalAmount,
-            order.Status,
-            order.CreatedAt,
-            order.Items.Select(item => new OrderItemDto
-            {
-                ProductId = item.ProductId,
-                VariantId = item.VariantId,
-                Quantity = item.Quantity,
-                UnitPrice = item.UnitPrice
-            }).ToList(),
-            order.Source,
-            order.ExternalOrderId,
-            order.ExternalSystemCode,
-            order.ShippingAddressId,
-            order.BillingAddressId,
-            order.UpdatedAt,
-            order.CancelledAt,
-            order.CancellationReason,
-            order.CustomerNote
-        )).ToList();
-
-        var pagedResult = PagedResult<GetOrderDto>.Create(orderDtos, totalCount, request.PageNumber, request.PageSize);
+        var orderDtos = orders.Select(o => o.Adapt<GetOrderDto>()).ToList();
+        var orderResponses = orderDtos.Select(dto => dto.Adapt<OrderResponse>()).ToList();
 
         var response = new PagedResponse<OrderResponse>
         {
-            Items = pagedResult.Items.Select(OrderResponse.FromDto).ToList(),
-            TotalCount = pagedResult.TotalCount,
-            PageNumber = pagedResult.PageNumber,
-            PageSize = pagedResult.PageSize,
-            TotalPages = pagedResult.TotalPages,
-            HasPreviousPage = pagedResult.HasPreviousPage,
-            HasNextPage = pagedResult.HasNextPage
+            Items = orderResponses,
+            TotalCount = totalCount,
+            PageNumber = request.PageNumber,
+            PageSize = request.PageSize,
         };
 
         return Result<PagedResponse<OrderResponse>>.Success(response);

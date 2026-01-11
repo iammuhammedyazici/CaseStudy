@@ -20,13 +20,20 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Cre
     private readonly IValidator<CreateOrderCommand> _validator;
     private readonly IPublishEndpoint _publishEndpoint;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IRequestClient<CheckStockRequest> _requestClient;
 
-    public CreateOrderHandler(IOrderRepository repository, IValidator<CreateOrderCommand> validator, IPublishEndpoint publishEndpoint, ICurrentUserService currentUserService)
+    public CreateOrderHandler(
+        IOrderRepository repository,
+        IValidator<CreateOrderCommand> validator,
+        IPublishEndpoint publishEndpoint,
+        ICurrentUserService currentUserService,
+        IRequestClient<CheckStockRequest> requestClient)
     {
         _repository = repository;
         _validator = validator;
         _publishEndpoint = publishEndpoint;
         _currentUserService = currentUserService;
+        _requestClient = requestClient;
     }
 
     /// <summary>
@@ -38,18 +45,48 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Cre
     public async Task<Result<CreateOrderResult>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
     {
         var userId = request.UserId ?? _currentUserService.UserId;
+        var isGuest = string.IsNullOrWhiteSpace(userId);
 
-        if (string.IsNullOrEmpty(userId))
+        if (isGuest)
         {
-            return Result<CreateOrderResult>.Unauthorized("User is not authenticated.");
+            if (string.IsNullOrWhiteSpace(request.GuestEmail))
+            {
+                return Result<CreateOrderResult>.Failure("Email is required for guest orders");
+            }
+
+            userId = $"guest-{request.GuestEmail}";
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.IdempotencyKey))
+        {
+            var existingOrder = await _repository.GetByIdempotencyKeyAsync(request.IdempotencyKey, cancellationToken);
+            if (existingOrder != null)
+            {
+                return Result<CreateOrderResult>.Success(new CreateOrderResult(existingOrder.Id, existingOrder.Status));
+            }
         }
 
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
+        var stockCheckRequest = new CheckStockRequest(
+            request.Items.Select(i => new StockCheckItem(i.VariantId, i.Quantity)).ToList()
+        );
+
+        var stockResponse = await _requestClient.GetResponse<CheckStockResponse>(stockCheckRequest, cancellationToken);
+
+        if (!stockResponse.Message.IsAvailable)
+        {
+            var unavailableItems = string.Join(", ",
+                stockResponse.Message.UnavailableItems.Select(u =>
+                    $"VariantId {u.VariantId}: requested {u.RequestedQuantity}, available {u.AvailableQuantity}"));
+
+            return Result<CreateOrderResult>.Failure($"Insufficient stock: {unavailableItems}");
+        }
+
         var order = new OrderEntity
         {
             Id = Guid.NewGuid(),
-            UserId = userId,
+            UserId = userId!,
             CreatedAt = DateTime.UtcNow,
             Status = OrderStatus.PendingStock,
             TotalAmount = request.Items.Sum(i => i.UnitPrice * i.Quantity),
@@ -59,6 +96,11 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Cre
             ShippingAddressId = request.ShippingAddressId,
             BillingAddressId = request.BillingAddressId,
             CustomerNote = request.CustomerNote,
+            IdempotencyKey = request.IdempotencyKey,
+            IdempotencyKeyExpiresAt = string.IsNullOrWhiteSpace(request.IdempotencyKey)
+                ? null
+                : DateTime.UtcNow.AddHours(24),
+            GuestEmail = isGuest ? request.GuestEmail : null,
             Items = request.Items.Select(i => new ECommerce.Order.Domain.OrderItem
             {
                 ProductId = i.ProductId,
@@ -72,7 +114,7 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Cre
 
         await _publishEndpoint.Publish(new OrderCreatedEvent(
             order.Id,
-            order.UserId,
+            order.UserId!,
             request.Items.Select(i => new ECommerce.Contracts.OrderItem(i.ProductId, i.VariantId, i.Quantity, i.UnitPrice)).ToList()), cancellationToken);
 
         return Result<CreateOrderResult>.Success(new CreateOrderResult(order.Id, order.Status));

@@ -26,4 +26,9 @@ public class Order
 
     public string? CustomerNote { get; set; }
     public string? InternalNote { get; set; }
+
+    public string? IdempotencyKey { get; set; }
+    public DateTime? IdempotencyKeyExpiresAt { get; set; }
+
+    public string? GuestEmail { get; set; }
 }

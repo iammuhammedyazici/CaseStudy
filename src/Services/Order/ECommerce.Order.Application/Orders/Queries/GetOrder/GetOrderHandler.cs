@@ -3,6 +3,7 @@ using MediatR;
 
 using ECommerce.Contracts.Common;
 using ECommerce.Order.Application.Abstractions;
+using Mapster;
 using System.Security.Claims;
 using ECommerce.Order.Application.Orders.Dtos;
 
@@ -33,35 +34,12 @@ public class GetOrderHandler : IRequestHandler<GetOrderQuery, Result<OrderRespon
 
         if (order.UserId != userId && !isAdmin)
         {
-            return Result<OrderResponse>.Failure("Forbidden - not your order");
+            return Result<OrderResponse>.Failure("Access denied");
         }
 
-        var items = order.Items.Select(i => new OrderItemDto
-        {
-            ProductId = i.ProductId,
-            VariantId = i.VariantId,
-            Quantity = i.Quantity,
-            UnitPrice = i.UnitPrice
-        }).ToList();
+        var dto = order.Adapt<GetOrderDto>();
+        var response = dto.Adapt<OrderResponse>();
 
-        var dto = new GetOrderDto(
-            order.Id,
-            order.UserId,
-            order.TotalAmount,
-            order.Status,
-            order.CreatedAt,
-            items,
-            order.Source,
-            order.ExternalOrderId,
-            order.ExternalSystemCode,
-            order.ShippingAddressId,
-            order.BillingAddressId,
-            order.UpdatedAt,
-            order.CancelledAt,
-            order.CancellationReason,
-            order.CustomerNote
-        );
-
-        return Result<OrderResponse>.Success(OrderResponse.FromDto(dto));
+        return Result<OrderResponse>.Success(response);
     }
 }

@@ -27,10 +27,8 @@ public class OrdersController : ControllerBase
     /// </summary>
     /// <remarks>
     /// This endpoint creates a new order based on the provided request data and the authenticated user context.
-    /// 
     /// <b>Authentication:</b> Required (JWT Bearer Token)  
     /// <b>Authorization:</b> Customer role
-    /// 
     /// <b>Behavior:</b>
     /// - UserId is automatically resolved from the JWT token
     /// - Order is created with initial status <i>PendingStock</i>
@@ -45,7 +43,7 @@ public class OrdersController : ControllerBase
     /// <returns>The created order result</returns>
 
     [HttpPost]
-    [Authorize(Policy = "CustomerOnly")]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

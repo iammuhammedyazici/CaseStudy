@@ -4,8 +4,8 @@ namespace ECommerce.Order.Application.Orders.Dtos;
 
 public class OrderItemResponse
 {
-    public int ProductId { get; set; }
-    public int VariantId { get; set; }
+    public Guid ProductId { get; set; }
+    public Guid VariantId { get; set; }
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
 

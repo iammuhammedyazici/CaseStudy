@@ -20,13 +20,13 @@ public class GetOrdersQueryValidator : AbstractValidator<GetOrdersQuery>
 
         RuleFor(x => x.Status)
             .Must(BeValidStatus)
-            .When(x => !string.IsNullOrEmpty(x.Status))
+            .When(x => !string.IsNullOrWhiteSpace(x.Status))
             .WithMessage("Status must be one of: PendingStock, Confirmed, Rejected, Cancelled");
     }
 
     private bool BeValidStatus(string? status)
     {
-        if (string.IsNullOrEmpty(status)) return true;
+        if (string.IsNullOrWhiteSpace(status)) return true;
 
         return status is "PendingStock" or "Confirmed" or "Rejected" or "Cancelled";
     }

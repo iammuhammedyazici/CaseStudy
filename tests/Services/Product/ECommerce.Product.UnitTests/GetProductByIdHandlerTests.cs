@@ -1,3 +1,4 @@
+using ECommerce.Contracts.Common;
 using ECommerce.Product.Application.Abstractions.Persistence;
 using ECommerce.Product.Application.Products.Queries.GetProductById;
 using ECommerce.Product.Domain.Entities;
@@ -55,10 +56,10 @@ public class GetProductByIdHandlerTests
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(productId);
+        result!.Id.Should().Be(GuidHelper.ToGuid(productId, "PROD"));
         result.Name.Should().Be("Test Product");
         result.Variants.Should().HaveCount(1);
-        result.Variants.First().Id.Should().Be(101);
+        result.Variants.First().Id.Should().Be(GuidHelper.ToGuid(101, "VAR"));
         result.Variants.First().SKU.Should().Be("SKU-101");
 
         _repositoryMock.Verify(r => r.GetByIdAsync(productId, It.IsAny<CancellationToken>()), Times.Once);

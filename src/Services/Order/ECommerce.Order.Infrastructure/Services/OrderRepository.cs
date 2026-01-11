@@ -67,12 +67,12 @@ public class OrderRepository : IOrderRepository
             .Include(o => o.Items)
             .AsQueryable();
 
-        if (!string.IsNullOrEmpty(userId))
+        if (!string.IsNullOrWhiteSpace(userId))
         {
             query = query.Where(o => o.UserId == userId);
         }
 
-        if (!string.IsNullOrEmpty(status) && Enum.TryParse<Domain.OrderStatus>(status, out var orderStatus))
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<Domain.OrderStatus>(status, out var orderStatus))
         {
             query = query.Where(o => o.Status == orderStatus);
         }
@@ -117,5 +117,11 @@ public class OrderRepository : IOrderRepository
 
         _dbContext.OutboxMessages.Add(outbox);
         await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<OrderEntity?> GetByIdempotencyKeyAsync(string idempotencyKey, CancellationToken cancellationToken)
+    {
+        return await _dbContext.Orders
+            .FirstOrDefaultAsync(o => o.IdempotencyKey == idempotencyKey, cancellationToken);
     }
 }

@@ -31,7 +31,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Res
         var userId = _currentUserService.UserId;
         var isAdmin = _currentUserService.IsAdmin;
 
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrWhiteSpace(userId))
         {
             return Result.Unauthorized("User is not authenticated");
         }
