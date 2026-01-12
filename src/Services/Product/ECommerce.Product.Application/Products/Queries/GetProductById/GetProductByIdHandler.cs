@@ -1,6 +1,6 @@
+using ECommerce.Contracts.Common;
 using ECommerce.Product.Application.Abstractions.Persistence;
 using ECommerce.Product.Application.Common.Dtos;
-using Mapster;
 using MediatR;
 
 namespace ECommerce.Product.Application.Products.Queries.GetProductById;
@@ -21,6 +21,22 @@ public class GetProductByIdHandler : IRequestHandler<GetProductByIdQuery, Produc
         if (product == null)
             return null;
 
-        return product.Adapt<ProductDto>();
+        return new ProductDto(
+            GuidHelper.ToGuid(product.Id),
+            product.Name,
+            product.Description,
+            product.Category,
+            product.Brand,
+            product.ImageUrl,
+            product.Variants.Select(v => new ProductVariantDto(
+                GuidHelper.ToGuid(v.Id),
+                v.SKU,
+                v.Name,
+                v.Price,
+                v.StockQuantity,
+                v.Color,
+                v.Size
+            )).ToList()
+        );
     }
 }

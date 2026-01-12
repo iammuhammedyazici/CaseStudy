@@ -35,6 +35,15 @@ var settings = new ConnectionSettings(new Uri(elasticsearchUrl))
 
 builder.Services.AddSingleton<IElasticClient>(new ElasticClient(settings));
 builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
+// MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
+    typeof(ECommerce.Product.Application.Products.Queries.GetProducts.GetProductsHandler).Assembly
+));
+
+builder.Services.AddCustomOpenTelemetry(builder.Configuration);
+builder.Logging.AddCustomOpenTelemetry(builder.Configuration);
 
 var app = builder.Build();
 

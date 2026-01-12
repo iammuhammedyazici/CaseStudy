@@ -21,11 +21,16 @@ Wait for all services to be healthy (~30 seconds), then access:
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| **API Gateway (Swagger)** | http://localhost:5080/swagger | - |
+| **API Gateway** | http://localhost:5080 | - |
 | **Aspire Dashboard** | http://localhost:18888 | - |
 | **RabbitMQ Management** | http://localhost:15672 | `guest` / `guest` |
 | **Redis Insight** | http://localhost:5540 | - |
 | **Elasticsearch** | http://localhost:9200 | - |
+
+> **Note**: All API requests should go through the API Gateway (`http://localhost:5080`). Individual services are not exposed externally. For Swagger documentation, use the individual service ports during development only:
+> - Order API: http://localhost:5001/swagger
+> - Stock API: http://localhost:5002/swagger
+> - Product API: http://localhost:5081/swagger
 
 ---
 
@@ -35,7 +40,7 @@ Wait for all services to be healthy (~30 seconds), then access:
 
 | Service | Port | Description |
 |---------|------|-------------|
-| **API Gateway** | 5000 | YARP reverse proxy, JWT authentication, routing |
+| **API Gateway** | 5080 | YARP reverse proxy, JWT validation (authentication), centralized routing and request forwarding |
 | **Order API** | (internal) | Order lifecycle management, Saga orchestration |
 | **Stock API** | (internal) | Inventory management, stock reservations |
 | **Product API** | (internal) | Product catalog, Elasticsearch search |
@@ -97,7 +102,7 @@ Wait for all services to be healthy (~30 seconds), then access:
 ### Generate JWT Token
 
 ```bash
-curl -X POST http://localhost:5000/dev/generate-token \
+curl -X POST http://localhost:5080/dev/generate-token \
   -H "Content-Type: application/json" \
   -d '{"userId": "user123", "role": "Customer"}'
 ```
@@ -120,7 +125,7 @@ TOKEN=$(curl -s -X POST http://localhost:5000/dev/generate-token \
   -d '{"userId":"user123","role":"Customer"}' | jq -r '.token')
 
 # 2. Create order
-curl -X POST http://localhost:5000/api/orders \
+curl -X POST http://localhost:5080/api/orders \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -141,7 +146,7 @@ curl -X POST http://localhost:5000/api/orders \
 ### Check Order Status
 
 ```bash
-curl http://localhost:5000/api/orders/{orderId} \
+curl http://localhost:5080/api/orders/{orderId} \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -149,13 +154,13 @@ curl http://localhost:5000/api/orders/{orderId} \
 
 ```bash
 # Search by keyword
-curl "http://localhost:5000/api/products/search?q=laptop"
+curl "http://localhost:5080/api/products/search?q=laptop"
 
 # Get all products
-curl http://localhost:5000/api/products
+curl http://localhost:5080/api/products
 
 # Get product by ID
-curl http://localhost:5000/api/products/1
+curl http://localhost:5080/api/products/1
 ```
 
 ---
@@ -218,12 +223,12 @@ sequenceDiagram
 
 ```bash
 # API Gateway
-curl http://localhost:5000/health
+curl http://localhost:5080/health
 
 # Individual services (via Gateway)
-curl http://localhost:5000/api/orders/health
-curl http://localhost:5000/api/products/health
-curl http://localhost:5000/api/stock/health
+curl http://localhost:5080/api/orders/health
+curl http://localhost:5080/api/products/health
+curl http://localhost:5080/api/stock/health
 ```
 
 ### RabbitMQ Queues
