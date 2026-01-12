@@ -37,6 +37,13 @@ public static class ServiceCollectionExtensions
                        });
                    });
                });
+
+            cfg.AddEntityFrameworkOutbox<OrderDbContext>(o =>
+            {
+                o.QueryDelay = TimeSpan.FromSeconds(1);
+                o.UsePostgres();
+                o.UseBusOutbox();
+            });
         });
 
         return services;

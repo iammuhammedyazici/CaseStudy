@@ -18,6 +18,8 @@ public class OrderDbContext : DbContext
     public DbSet<OrderItemEntity> OrderItems => Set<OrderItemEntity>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<OutboxState> OutboxState => Set<OutboxState>();
+    public DbSet<InboxState> InboxState => Set<InboxState>();
     public DbSet<OrderState> OrderStates => Set<OrderState>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -103,6 +105,19 @@ public class OrderDbContext : DbContext
             entity.HasIndex(i => i.MessageId).IsUnique();
             entity.Property(i => i.Consumer).HasMaxLength(200);
             entity.Property(i => i.Status).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<OutboxState>(entity =>
+        {
+            entity.HasKey(x => x.OutboxId);
+            entity.Property(x => x.RowVersion).IsRowVersion();
+        });
+
+        modelBuilder.Entity<InboxState>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => x.MessageId).IsUnique();
+            entity.Property(x => x.RowVersion).IsRowVersion();
         });
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OrderDbContext).Assembly);

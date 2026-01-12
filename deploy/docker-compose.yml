@@ -144,6 +144,7 @@ services:
       RabbitMQ__UserName: guest
       RabbitMQ__Password: guest
       RabbitMQ__ExchangeName: ecommerce.events
+      Redis: redis:6379
       OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: stock-worker
@@ -165,6 +166,7 @@ services:
       RabbitMQ__UserName: guest
       RabbitMQ__Password: guest
       RabbitMQ__ExchangeName: ecommerce.events
+      Redis: redis:6379
       OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: stock-service
@@ -238,6 +240,16 @@ services:
     volumes:
       - redis_data:/data
 
+  redis-insight:
+    image: redis/redisinsight:latest
+    ports:
+      - "5540:5540"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - redis_insight_data:/data
+
   aspire-dashboard:
     image: mcr.microsoft.com/dotnet/aspire-dashboard:8.1
     environment:
@@ -251,3 +263,4 @@ volumes:
   product_data:
   elastic_data:
   redis_data:
+  redis_insight_data:
