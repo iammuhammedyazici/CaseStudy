@@ -2,6 +2,7 @@ using ECommerce.Contracts;
 using ECommerce.Order.Application.Abstractions;
 using ECommerce.Order.Application.Abstractions.Persistence;
 using ECommerce.Order.Application.Orders.Commands.CreateOrder;
+using ECommerce.Order.Application.Orders.Dtos;
 using ECommerce.Order.Domain;
 using FluentAssertions;
 using FluentValidation;
@@ -44,8 +45,8 @@ public class CreateOrderHandlerTests
                 new(1, 1, 2, 100)
             },
             UserId: "user-1",
-            ShippingAddressId: Guid.NewGuid(),
-            BillingAddressId: Guid.NewGuid(),
+            ShippingAddress: new AddressDto("John Doe", "1234567890", "123 Main St", null, "City", "State", "12345", "Country"),
+            BillingAddress: new AddressDto("John Doe", "1234567890", "123 Main St", null, "City", "State", "12345", "Country"),
             Source: OrderSource.Web,
             ExternalOrderId: "ext-1",
             ExternalSystemCode: "sys-1",
@@ -100,8 +101,8 @@ public class CreateOrderHandlerTests
 
         var command = new CreateOrderCommand(
             Items: new List<CreateOrderItem>(),
-            ShippingAddressId: null,
-            BillingAddressId: null,
+            ShippingAddress: null,
+            BillingAddress: null,
             Source: OrderSource.Web,
             ExternalOrderId: null,
             ExternalSystemCode: null,

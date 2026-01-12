@@ -1,3 +1,4 @@
+using ECommerce.Order.Application.Orders.Dtos;
 using ECommerce.Order.Domain;
 
 namespace ECommerce.Order.Application.Orders.Queries.GetOrder;
@@ -20,8 +21,8 @@ public record GetOrderDto(
     OrderSource Source,
     string? ExternalOrderId,
     string? ExternalSystemCode,
-    Guid? ShippingAddressId,
-    Guid? BillingAddressId,
+    AddressDto? ShippingAddress,
+    AddressDto? BillingAddress,
     DateTime? UpdatedAt,
     DateTime? CancelledAt,
     string? CancellationReason,

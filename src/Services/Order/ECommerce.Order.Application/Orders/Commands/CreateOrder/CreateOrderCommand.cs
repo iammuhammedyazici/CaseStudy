@@ -1,4 +1,5 @@
 using ECommerce.Contracts.Common;
+using ECommerce.Order.Application.Orders.Dtos;
 using ECommerce.Order.Domain;
 using MediatR;
 
@@ -10,8 +11,8 @@ public record CreateOrderCommand(
     string? UserId = null,
     string? ExternalOrderId = null,
     string? ExternalSystemCode = null,
-    Guid? ShippingAddressId = null,
-    Guid? BillingAddressId = null,
+    AddressDto? ShippingAddress = null,
+    AddressDto? BillingAddress = null,
     string? CustomerNote = null,
     string? IdempotencyKey = null,
     string? GuestEmail = null

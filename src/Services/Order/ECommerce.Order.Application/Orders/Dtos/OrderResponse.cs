@@ -15,8 +15,8 @@ public class OrderResponse
     public string Source { get; init; } = string.Empty;
     public string? ExternalOrderId { get; init; }
     public string? ExternalSystemCode { get; init; }
-    public Guid? ShippingAddressId { get; init; }
-    public Guid? BillingAddressId { get; init; }
+    public AddressDto? ShippingAddress { get; init; }
+    public AddressDto? BillingAddress { get; init; }
     public DateTime? UpdatedAt { get; init; }
     public DateTime? CancelledAt { get; init; }
     public string? CancellationReason { get; init; }
@@ -35,8 +35,8 @@ public class OrderResponse
             Source = dto.Source.ToString(),
             ExternalOrderId = dto.ExternalOrderId,
             ExternalSystemCode = dto.ExternalSystemCode,
-            ShippingAddressId = dto.ShippingAddressId,
-            BillingAddressId = dto.BillingAddressId,
+            ShippingAddress = dto.ShippingAddress,
+            BillingAddress = dto.BillingAddress,
             UpdatedAt = dto.UpdatedAt,
             CancelledAt = dto.CancelledAt,
             CancellationReason = dto.CancellationReason,

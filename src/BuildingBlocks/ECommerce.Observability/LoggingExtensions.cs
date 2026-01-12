@@ -2,6 +2,8 @@ using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
+using Serilog.Sinks.OpenTelemetry;
+using System;
 
 namespace ECommerce.Observability;
 
@@ -29,6 +31,22 @@ public static class LoggingExtensions
         else
         {
             configuration.WriteTo.Console();
+        }
+
+        var otlpEndpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+        if (!string.IsNullOrWhiteSpace(otlpEndpoint))
+        {
+            var endpoint = otlpEndpoint.TrimEnd('/');
+            if (!endpoint.EndsWith("/v1/logs", StringComparison.OrdinalIgnoreCase))
+            {
+                endpoint = $"{endpoint}/v1/logs";
+            }
+
+            configuration.WriteTo.OpenTelemetry(options =>
+            {
+                options.Endpoint = endpoint;
+                options.Protocol = OtlpProtocol.HttpProtobuf;
+            });
         }
 
         Log.Logger = configuration.CreateLogger();

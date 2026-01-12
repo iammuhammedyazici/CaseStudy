@@ -1,6 +1,8 @@
 using ECommerce.Messaging;
 using ECommerce.Stock.Infrastructure.Consumers;
+using ECommerce.Stock.Infrastructure.Data;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
@@ -15,13 +17,27 @@ public static class ServiceCollectionExtensions
         services.AddMassTransitWithRabbitMq(configuration, cfg =>
         {
             cfg.AddConsumer<OrderCreatedConsumer>();
+            cfg.AddConsumer<CheckStockConsumer>();
         });
+        return services;
+    }
+
+    public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("StockDb")
+            ?? configuration["STOCK_DB_CONNECTION"]
+            ?? configuration["ConnectionStrings__StockDb"];
+
+        services.AddDbContext<StockDbContext>(options =>
+            options.UseNpgsql(connectionString));
+
         return services;
     }
 
     public static IServiceCollection AddCustomOpenTelemetry(this IServiceCollection services, IConfiguration configuration)
     {
-        var otelEndpoint = configuration["OpenTelemetry:Endpoint"]
+        var otelEndpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+            ?? configuration["OpenTelemetry:Endpoint"]
             ?? throw new InvalidOperationException("OpenTelemetry:Endpoint configuration is missing");
 
         services.AddOpenTelemetry()
@@ -44,7 +60,8 @@ public static class ServiceCollectionExtensions
 
     public static ILoggingBuilder AddCustomOpenTelemetry(this ILoggingBuilder logging, IConfiguration configuration)
     {
-        var otelEndpoint = configuration["OpenTelemetry:Endpoint"]
+        var otelEndpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+            ?? configuration["OpenTelemetry:Endpoint"]
             ?? throw new InvalidOperationException("OpenTelemetry:Endpoint configuration is missing");
 
         logging.AddOpenTelemetry(options =>

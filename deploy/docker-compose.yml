@@ -111,12 +111,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ORDER_DB_CONNECTION: Host=postgres_order;Database=orderdb;Username=orderuser;Password=orderpass
-      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Host: rabbitmq
       RabbitMQ__Port: 5672
       RabbitMQ__UserName: guest
       RabbitMQ__Password: guest
       RabbitMQ__ExchangeName: ecommerce.events
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: order-service
     ports:
@@ -139,12 +139,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__StockDb: Host=postgres_stock;Database=stockdb;Username=stockuser;Password=stockpass
-      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Host: rabbitmq
       RabbitMQ__Port: 5672
       RabbitMQ__UserName: guest
       RabbitMQ__Password: guest
       RabbitMQ__ExchangeName: ecommerce.events
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: stock-worker
     depends_on:
@@ -160,12 +160,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__StockDb: Host=postgres_stock;Database=stockdb;Username=stockuser;Password=stockpass
-      RabbitMQ__HostName: rabbitmq
+      RabbitMQ__Host: rabbitmq
       RabbitMQ__Port: 5672
       RabbitMQ__UserName: guest
       RabbitMQ__Password: guest
       RabbitMQ__ExchangeName: ecommerce.events
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: stock-service
     ports:
@@ -187,13 +187,13 @@ services:
       dockerfile: src/Services/Notification/ECommerce.Notification.Worker/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      NOTIFICATION_DB_CONNECTION: Host=postgres_notification;Database=notificationdb;Username=notifuser;Password=notifpass
-      RabbitMQ__HostName: rabbitmq
+      ConnectionStrings__NotificationDb: Host=postgres_notification;Database=notificationdb;Username=notifuser;Password=notifpass
+      RabbitMQ__Host: rabbitmq
       RabbitMQ__Port: 5672
       RabbitMQ__UserName: guest
       RabbitMQ__Password: guest
       RabbitMQ__ExchangeName: ecommerce.events
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: notification-worker
     depends_on:
@@ -210,7 +210,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       PRODUCT_DB_CONNECTION: Host=postgres_product;Database=productdb;Username=productuser;Password=productpass
       Elasticsearch__Url: http://elasticsearch:9200
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:4318
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://aspire-dashboard:18890
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
       OTEL_SERVICE_NAME: product-service
     ports:

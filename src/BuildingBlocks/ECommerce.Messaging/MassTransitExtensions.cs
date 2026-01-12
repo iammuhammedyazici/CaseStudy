@@ -15,9 +15,20 @@ public static class MassTransitExtensions
             x.UsingRabbitMq((context, cfg) =>
             {
                 var rabbitMqSection = configuration.GetSection("RabbitMq");
-                var host = rabbitMqSection["Host"] ?? rabbitMqSection["HostName"] ?? "localhost";
-                var username = rabbitMqSection["Username"] ?? rabbitMqSection["UserName"] ?? "guest";
-                var password = rabbitMqSection["Password"] ?? "guest";
+                var rabbitMqSectionAlt = configuration.GetSection("RabbitMQ");
+                var host = rabbitMqSection["Host"]
+                    ?? rabbitMqSection["HostName"]
+                    ?? rabbitMqSectionAlt["Host"]
+                    ?? rabbitMqSectionAlt["HostName"]
+                    ?? "localhost";
+                var username = rabbitMqSection["Username"]
+                    ?? rabbitMqSection["UserName"]
+                    ?? rabbitMqSectionAlt["Username"]
+                    ?? rabbitMqSectionAlt["UserName"]
+                    ?? "guest";
+                var password = rabbitMqSection["Password"]
+                    ?? rabbitMqSectionAlt["Password"]
+                    ?? "guest";
 
                 cfg.Host(host, "/", h =>
                 {

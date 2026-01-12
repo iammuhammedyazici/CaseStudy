@@ -3,6 +3,7 @@ using System;
 using ECommerce.Order.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ECommerce.Order.Infrastructure.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    partial class OrderDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260112005034_AddOrderAddressTable")]
+    partial class AddOrderAddressTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,7 +134,7 @@ namespace ECommerce.Order.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<Guid?>("BillingAddressOrderId")
+                    b.Property<Guid>("BillingAddressOrderId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("City")
@@ -149,7 +152,7 @@ namespace ECommerce.Order.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<Guid?>("OrderId")
+                    b.Property<Guid>("OrderId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Phone")
@@ -300,7 +303,8 @@ namespace ECommerce.Order.Infrastructure.Migrations
                     b.HasOne("ECommerce.Order.Domain.Order", null)
                         .WithOne("BillingAddress")
                         .HasForeignKey("ECommerce.Order.Domain.OrderAddress", "BillingAddressOrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ECommerce.Order.Domain.Order", null)
                         .WithOne("ShippingAddress")

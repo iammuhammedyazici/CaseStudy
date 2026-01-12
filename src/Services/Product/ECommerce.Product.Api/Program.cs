@@ -20,6 +20,7 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCustomSwagger();
+builder.Services.AddHealthChecks();
 
 var connectionString = builder.Configuration.GetConnectionString("ProductDb")
     ?? builder.Configuration["PRODUCT_DB_CONNECTION"];
@@ -33,6 +34,7 @@ var settings = new ConnectionSettings(new Uri(elasticsearchUrl))
     .DefaultIndex("products");
 
 builder.Services.AddSingleton<IElasticClient>(new ElasticClient(settings));
+builder.Services.AddScoped<IElasticsearchService, ElasticsearchService>();
 
 var app = builder.Build();
 

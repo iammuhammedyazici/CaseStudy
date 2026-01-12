@@ -38,7 +38,13 @@ public class GetStockHandler : IRequestHandler<GetStockQuery, Result<GetStockRes
             return Result<GetStockResult>.Failure("Product not found");
         }
 
-        var result = stockItem.Adapt<GetStockResult>();
+        var result = new GetStockResult(
+            GuidHelper.ToGuid(stockItem.VariantId),
+            GuidHelper.ToGuid(stockItem.ProductId),
+            stockItem.AvailableQuantity,
+            stockItem.ReservedQuantity,
+            stockItem.ActualAvailable
+        );
 
         var cacheOptions = new Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions
         {

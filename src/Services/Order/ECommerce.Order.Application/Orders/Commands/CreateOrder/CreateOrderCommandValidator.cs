@@ -41,9 +41,20 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
                 .WithMessage("External System Code cannot exceed 50 characters");
         });
 
-        RuleFor(x => x.ShippingAddressId)
-            .NotEmpty()
+        RuleFor(x => x.ShippingAddress)
+            .NotNull()
             .WithMessage("Shipping address is required");
+
+        When(x => x.ShippingAddress != null, () =>
+        {
+            RuleFor(x => x.ShippingAddress!.FullName).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.ShippingAddress!.Phone).NotEmpty().MaximumLength(20);
+            RuleFor(x => x.ShippingAddress!.AddressLine1).NotEmpty().MaximumLength(200);
+            RuleFor(x => x.ShippingAddress!.City).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.ShippingAddress!.State).NotEmpty().MaximumLength(100);
+            RuleFor(x => x.ShippingAddress!.PostalCode).NotEmpty().MaximumLength(20);
+            RuleFor(x => x.ShippingAddress!.Country).NotEmpty().MaximumLength(100);
+        });
 
         RuleFor(x => x.CustomerNote)
             .MaximumLength(1000)

@@ -2,6 +2,7 @@ using ECommerce.Order.Infrastructure.Entities;
 using ECommerce.Order.Infrastructure.Saga;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using ECommerce.Order.Domain;
 using OrderEntity = ECommerce.Order.Domain.Order;
 using OrderItemEntity = ECommerce.Order.Domain.OrderItem;
 
@@ -39,11 +40,36 @@ public class OrderDbContext : DbContext
             entity.HasIndex(o => o.Source);
             entity.HasIndex(o => o.ExternalOrderId).IsUnique(false);
             entity.HasIndex(o => o.ExternalSystemCode);
-            entity.HasIndex(o => o.ShippingAddressId);
             entity.HasIndex(o => o.IdempotencyKey).IsUnique();
             entity.HasIndex(o => o.GuestEmail);
             entity.HasIndex(o => o.Status);
             entity.HasIndex(o => o.CreatedAt);
+
+            entity.HasOne(o => o.ShippingAddress)
+                .WithOne()
+                .HasForeignKey<OrderAddress>("ShippingAddressOrderId")
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(o => o.BillingAddress)
+                .WithOne()
+                .HasForeignKey<OrderAddress>("BillingAddressOrderId")
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<OrderAddress>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.AddressType).HasMaxLength(20);
+            entity.Property(a => a.FullName).HasMaxLength(100);
+            entity.Property(a => a.Phone).HasMaxLength(20);
+            entity.Property(a => a.AddressLine1).HasMaxLength(200);
+            entity.Property(a => a.AddressLine2).HasMaxLength(200);
+            entity.Property(a => a.City).HasMaxLength(100);
+            entity.Property(a => a.State).HasMaxLength(100);
+            entity.Property(a => a.PostalCode).HasMaxLength(20);
+            entity.Property(a => a.Country).HasMaxLength(100);
         });
 
         modelBuilder.Entity<OrderItemEntity>(entity =>

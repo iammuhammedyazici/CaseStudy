@@ -11,7 +11,7 @@ public class StockItem
     public DateTime? UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }
 
-    public byte[] RowVersion { get; set; } = null!;
+    public uint RowVersion { get; set; }
 
     public int MinimumQuantity { get; set; }
     public bool IsActive { get; set; }

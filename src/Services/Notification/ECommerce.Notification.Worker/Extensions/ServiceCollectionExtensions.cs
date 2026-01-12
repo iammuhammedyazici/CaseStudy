@@ -1,6 +1,8 @@
 using ECommerce.Messaging;
 using ECommerce.Notification.Infrastructure.Consumers;
 using MassTransit;
+using ECommerce.Notification.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
@@ -22,7 +24,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddCustomOpenTelemetry(this IServiceCollection services, IConfiguration configuration)
     {
-        var otelEndpoint = configuration["OpenTelemetry:Endpoint"]
+        var otelEndpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+            ?? configuration["OpenTelemetry:Endpoint"]
             ?? throw new InvalidOperationException("OpenTelemetry:Endpoint configuration is missing");
 
         services.AddOpenTelemetry()
@@ -45,7 +48,8 @@ public static class ServiceCollectionExtensions
 
     public static ILoggingBuilder AddCustomOpenTelemetry(this ILoggingBuilder logging, IConfiguration configuration)
     {
-        var otelEndpoint = configuration["OpenTelemetry:Endpoint"]
+        var otelEndpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+            ?? configuration["OpenTelemetry:Endpoint"]
             ?? throw new InvalidOperationException("OpenTelemetry:Endpoint configuration is missing");
 
         logging.AddOpenTelemetry(options =>
@@ -60,5 +64,18 @@ public static class ServiceCollectionExtensions
         });
 
         return logging;
+    }
+    public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("NotificationDb");
+        services.AddDbContext<NotificationDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.MigrationsAssembly("ECommerce.Notification.Infrastructure");
+            });
+        });
+
+        return services;
     }
 }

@@ -83,9 +83,10 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Cre
             return Result<CreateOrderResult>.Failure($"Insufficient stock: {unavailableItems}");
         }
 
+        var orderId = Guid.NewGuid();
         var order = new OrderEntity
         {
-            Id = Guid.NewGuid(),
+            Id = orderId,
             UserId = userId!,
             CreatedAt = DateTime.UtcNow,
             Status = OrderStatus.PendingStock,
@@ -93,8 +94,34 @@ public class CreateOrderHandler : IRequestHandler<CreateOrderCommand, Result<Cre
             Source = request.Source,
             ExternalOrderId = request.ExternalOrderId,
             ExternalSystemCode = request.ExternalSystemCode,
-            ShippingAddressId = request.ShippingAddressId,
-            BillingAddressId = request.BillingAddressId,
+            ShippingAddress = request.ShippingAddress != null ? new OrderAddress
+            {
+                Id = Guid.NewGuid(),
+                OrderId = orderId,
+                AddressType = "Shipping",
+                FullName = request.ShippingAddress.FullName,
+                Phone = request.ShippingAddress.Phone,
+                AddressLine1 = request.ShippingAddress.AddressLine1,
+                AddressLine2 = request.ShippingAddress.AddressLine2,
+                City = request.ShippingAddress.City,
+                State = request.ShippingAddress.State,
+                PostalCode = request.ShippingAddress.PostalCode,
+                Country = request.ShippingAddress.Country
+            } : null,
+            BillingAddress = request.BillingAddress != null ? new OrderAddress
+            {
+                Id = Guid.NewGuid(),
+                OrderId = orderId,
+                AddressType = "Billing",
+                FullName = request.BillingAddress.FullName,
+                Phone = request.BillingAddress.Phone,
+                AddressLine1 = request.BillingAddress.AddressLine1,
+                AddressLine2 = request.BillingAddress.AddressLine2,
+                City = request.BillingAddress.City,
+                State = request.BillingAddress.State,
+                PostalCode = request.BillingAddress.PostalCode,
+                Country = request.BillingAddress.Country
+            } : null,
             CustomerNote = request.CustomerNote,
             IdempotencyKey = request.IdempotencyKey,
             IdempotencyKeyExpiresAt = string.IsNullOrWhiteSpace(request.IdempotencyKey)

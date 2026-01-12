@@ -14,8 +14,8 @@ public class Order
     public string? ExternalOrderId { get; set; }
     public string? ExternalSystemCode { get; set; }
 
-    public Guid? ShippingAddressId { get; set; }
-    public Guid? BillingAddressId { get; set; }
+    public OrderAddress? ShippingAddress { get; set; }
+    public OrderAddress? BillingAddress { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }

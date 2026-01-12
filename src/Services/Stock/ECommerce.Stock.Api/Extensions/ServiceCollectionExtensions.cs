@@ -43,7 +43,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddCustomOpenTelemetry(this IServiceCollection services, IConfiguration configuration)
     {
-        var otelEndpoint = configuration["OpenTelemetry:Endpoint"] 
+        var otelEndpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+            ?? configuration["OpenTelemetry:Endpoint"] 
             ?? throw new InvalidOperationException("OpenTelemetry:Endpoint configuration is missing");
 
         services.AddOpenTelemetry()
@@ -81,7 +82,8 @@ public static class ServiceCollectionExtensions
 
     public static ILoggingBuilder AddCustomOpenTelemetry(this ILoggingBuilder logging, IConfiguration configuration)
     {
-        var otelEndpoint = configuration["OpenTelemetry:Endpoint"] 
+        var otelEndpoint = configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]
+            ?? configuration["OpenTelemetry:Endpoint"] 
             ?? throw new InvalidOperationException("OpenTelemetry:Endpoint configuration is missing");
 
         logging.AddOpenTelemetry(options =>
