@@ -34,7 +34,7 @@ The repository is organized into the following key areas:
 | **Order Service** | API | Order lifecycle management, Saga State tracking. | `OrderDb` |
 | **Stock Service** | API + Worker | Inventory management, Stock reservation. | `StockDb` |
 | **Product Service** | API | Product catalog management, Search (Elasticsearch). | `ProductDb` |
-| **Notification Service** | Worker | Sending notifications (Email/SMS simulation). | `NotificationDb` |
+| **Notification Service** | Worker | Multi-channel notifications (Email/SMS) with SOLID architecture. | `NotificationDb` |
 
 ---
 
@@ -289,7 +289,71 @@ The `deploy/docker-compose.yml` file orchestrates the entire environment:
 
 ---
 
-## 9. Key Design Decisions
+## 9. Notification Service (SOLID Architecture)
+
+The Notification Service demonstrates **SOLID principles** in practice, with a clean separation of concerns and extensibility for multiple notification channels.
+
+### Architecture Layers
+
+**Domain Layer:**
+- `NotificationChannel` enum (Email, SMS, Push)
+- `NotificationRequest` value object (immutable)
+
+**Application Layer:**
+- `INotificationService`: Main orchestrator interface
+- `IEmailService`: Email-specific abstraction
+- `ISmsService`: SMS-specific abstraction
+- `SendNotificationHandler`: MediatR handler (delegates to `INotificationService`)
+
+**Infrastructure Layer:**
+- `NotificationService`: Orchestrator implementation (routes to correct channel)
+- `SendGridEmailService`: Real email provider (SendGrid SDK)
+- `TwilioSmsService`: Real SMS provider (Twilio SDK)
+- `MockEmailService`: Test implementation (logs to console)
+- `MockSmsService`: Test implementation (logs to console)
+
+### SOLID Principles Applied
+
+| Principle | Implementation |
+|-----------|----------------|
+| **SRP** | Each service has one responsibility (e.g., `SendGridEmailService` only sends emails) |
+| **OCP** | New channels (Push, WhatsApp) can be added without modifying existing code |
+| **LSP** | `MockEmailService` and `SendGridEmailService` are interchangeable |
+| **ISP** | Separate interfaces for Email, SMS, and orchestration |
+| **DIP** | All dependencies are on abstractions (`IEmailService`, `ISmsService`) |
+
+### Configuration (Feature Flag)
+
+```json
+{
+  "NotificationSettings": {
+    "UseMockProviders": true  // true = Mock, false = Real providers
+  },
+  "SendGrid": {
+    "ApiKey": "",
+    "FromEmail": "noreply@ecommerce.com"
+  },
+  "Twilio": {
+    "AccountSid": "",
+    "AuthToken": "",
+    "FromPhoneNumber": "+15551234567"
+  }
+}
+```
+
+**Default Behavior:**
+- Mock providers are enabled by default (no API keys required)
+- Logs to console: `[MOCK EMAIL] To: user@example.com, Subject: ...`
+- Notifications are still logged to `NotificationLogs` table
+
+**Production Setup:**
+1. Add SendGrid/Twilio API keys to `appsettings.json`
+2. Set `UseMockProviders: false`
+3. Restart `notification-worker`
+
+---
+
+## 10. Key Design Decisions
 
 ### Why Event-Driven over Synchronous HTTP?
 - **Resilience**: Services don't fail if dependencies are down
@@ -312,7 +376,7 @@ The `deploy/docker-compose.yml` file orchestrates the entire environment:
 
 ---
 
-## 10. Future Enhancements
+## 11. Future Enhancements
 
 - **Circuit Breaker**: Polly for resilience
 - **Rate Limiting**: API Gateway rate limiting

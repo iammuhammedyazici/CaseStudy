@@ -1,32 +1,33 @@
-using ECommerce.Notification.Application.Abstractions.Persistence;
-using ECommerce.Notification.Domain;
+using ECommerce.Notification.Application.Abstractions.Services;
+using ECommerce.Notification.Domain.Enums;
+using ECommerce.Notification.Domain.Models;
 using MediatR;
 
 namespace ECommerce.Notification.Application.Notifications.Commands.SendNotification;
 
+/// <summary>
+/// Handler for sending notifications through various channels
+/// </summary>
 public class SendNotificationHandler : IRequestHandler<SendNotificationCommand>
 {
-    private readonly INotificationRepository _repository;
+    private readonly INotificationService _notificationService;
 
-    public SendNotificationHandler(INotificationRepository repository)
+    public SendNotificationHandler(INotificationService notificationService)
     {
-        _repository = repository;
+        _notificationService = notificationService;
     }
 
-    public Task Handle(SendNotificationCommand request, CancellationToken cancellationToken)
+    public async Task Handle(SendNotificationCommand request, CancellationToken cancellationToken)
     {
-        var log = new NotificationLog
+        var notificationRequest = new NotificationRequest
         {
-            Id = Guid.NewGuid(),
-            OrderId = request.OrderId,
-            Channel = "email",
+            Channel = NotificationChannel.Email,
             Recipient = "user@example.com",
-            Content = $"Order {request.OrderId} stock status: {request.Status}",
-            Status = "Sent",
-            CreatedAtUtc = DateTime.UtcNow
+            Subject = $"Order {request.OrderId} Update",
+            Content = $"Your order {request.OrderId} stock status: {request.Status}",
+            OrderId = request.OrderId
         };
 
-        _repository.AddNotification(log);
-        return Task.CompletedTask;
+        await _notificationService.SendAsync(notificationRequest, cancellationToken);
     }
 }

@@ -1,4 +1,5 @@
 using ECommerce.Notification.Infrastructure.Data;
+using ECommerce.Notification.Infrastructure;
 using ECommerce.Notification.Worker.Extensions;
 using ECommerce.Observability;
 using ECommerce.Notification.Infrastructure.Services;
@@ -16,6 +17,7 @@ builder.Services.AddSerilog();
 builder.Services.AddCustomMassTransit(builder.Configuration);
 builder.Services.AddCustomOpenTelemetry(builder.Configuration);
 builder.Services.AddCustomDbContext(builder.Configuration);
+builder.Services.AddNotificationInfrastructure(builder.Configuration);
 builder.Services.AddScoped<ECommerce.Notification.Application.Abstractions.Persistence.INotificationRepository, ECommerce.Notification.Infrastructure.Services.NotificationRepository>();
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(
     typeof(ECommerce.Notification.Application.DependencyInjection).Assembly

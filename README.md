@@ -21,9 +21,10 @@ Wait for all services to be healthy (~30 seconds), then access:
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| **API Gateway (Swagger)** | http://localhost:5000/swagger | - |
+| **API Gateway (Swagger)** | http://localhost:5080/swagger | - |
 | **Aspire Dashboard** | http://localhost:18888 | - |
 | **RabbitMQ Management** | http://localhost:15672 | `guest` / `guest` |
+| **Redis Insight** | http://localhost:5540 | - |
 | **Elasticsearch** | http://localhost:9200 | - |
 
 ---
@@ -50,6 +51,7 @@ Wait for all services to be healthy (~30 seconds), then access:
 | **Notification DB** (PostgreSQL) | 5435 | `notifuser` / `notifpass` |
 | **Product DB** (PostgreSQL) | 5436 | `productuser` / `productpass` |
 | **Redis** | 6379 | - |
+| **Redis Insight** | 5540 | - |
 | **RabbitMQ** | 5672 | `guest` / `guest` |
 | **Elasticsearch** | 9200 | - |
 
